@@ -1,0 +1,55 @@
+---
+title: "Análisis de datos por covid usando R/S"
+author: "NA"
+date: "9/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(fractal)
+library(fArma)
+library(readxl)
+library(zoo)
+library(DT)
+```
+
+## Datos de Covid-19
+
+Los datos de covid19 del 11 de Marzo de 2020 al 3 de Julio de 2020 presentan características que se muestran en los siguientes gráficos:
+
+```{r plots-r, warning=FALSE, cache=TRUE}
+data <- read_xlsx("covid.xlsx")
+covid <- as.double(data$`Casos diarios...3`)
+covid <- covid[17:130]
+covidts <- zoo(covid, seq(from = as.Date("2020-03-12"), to = as.Date("2020-07-03"), by = 1))
+plot(covidts, type = "l", main="Casos diarios de covid", xlab="días", ylab="No de casos")
+
+```
+
+A continuación realizaremos un análisis de la estadística R/S usando diferentes valores de inicio de la serie, por ejemplo del 11 de Marzo al 3 de Julio, del 12 de Marzo al 3 de Julio, etc y lo presentaremos en la siguiente tabla.
+
+```{r warning=FALSE, cache=TRUE, error=FALSE}
+data <- read_xlsx("covid.xlsx")
+covid <- as.double(data$`Casos diarios...3`)
+covid <- covid[17:130]
+covidts <- zoo(covid, seq(from = as.Date("2020-03-12"), to = as.Date("2020-07-03"), by = 1))
+dates  <- as.character(time(covidts))
+values <- coredata(covidts)
+endT   <- length(values)
+endtime <- end(covidts)
+initial <- NULL
+rsEst   <- NULL
+indexJ  <- 15
+for(i in 1:indexJ)
+{
+  initial <- c(initial, dates[i])
+  data    <- values[i:endT]
+  rsEst   <- c(rsEst, RoverS(data))
+  
+}
+table <- data.frame(initialTime = initial, endTime = rep(endtime, indexJ), Estimations=rsEst)
+datatable(table)
+
+```
+
